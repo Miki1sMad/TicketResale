@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: TicketResale
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ticketresale}
+    username: ${SPRING_DATASOURCE_USERNAME:ticketresale}
+    password: ${SPRING_DATASOURCE_PASSWORD:ticketresale}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  mail:
+    host: ${SPRING_MAIL_HOST:localhost}
+    port: ${SPRING_MAIL_PORT:1025}
+    protocol: smtp
