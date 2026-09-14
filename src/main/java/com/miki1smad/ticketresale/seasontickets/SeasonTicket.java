@@ -4,11 +4,10 @@ import com.miki1smad.ticketresale.events.Club;
 import com.miki1smad.ticketresale.events.Seat;
 import com.miki1smad.ticketresale.users.User;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "season_tickets")

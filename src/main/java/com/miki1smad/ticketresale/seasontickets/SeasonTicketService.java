@@ -4,13 +4,12 @@ import com.miki1smad.ticketresale.events.Match;
 import com.miki1smad.ticketresale.events.MatchRepository;
 import com.miki1smad.ticketresale.users.User;
 import com.miki1smad.ticketresale.users.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,14 +27,17 @@ public class SeasonTicketService {
         }
 
         String trimmedBarcode = barcode.trim();
-        SeasonTicket ticket = seasonTicketRepository.findByBarcode(trimmedBarcode)
-                .orElseThrow(() -> new IllegalArgumentException("Nevažeći bar-kod sezonske karte. Molimo proverite unos i pokušajte ponovo."));
+        SeasonTicket ticket = seasonTicketRepository
+                .findByBarcode(trimmedBarcode)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Nevažeći bar-kod sezonske karte. Molimo proverite unos i pokušajte ponovo."));
 
         if (ticket.getStatus() != SeasonTicketStatus.UNCLAIMED || ticket.getOwner() != null) {
             throw new IllegalStateException("Sezonska karta sa ovim bar-kodom je već preuzeta.");
         }
 
-        User user = userService.findById(userId)
+        User user = userService
+                .findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Korisnik nije pronađen: " + userId));
 
         ticket.setOwner(user);
@@ -43,7 +45,8 @@ public class SeasonTicketService {
         ticket.setClaimedAt(Instant.now());
         SeasonTicket savedTicket = seasonTicketRepository.save(ticket);
 
-        List<Match> matches = matchRepository.findBySeasonAndHomeClubId(ticket.getSeason(), ticket.getClub().getId());
+        List<Match> matches = matchRepository.findBySeasonAndHomeClubId(
+                ticket.getSeason(), ticket.getClub().getId());
         List<MatchEntitlement> entitlements = new ArrayList<>();
 
         for (Match match : matches) {
@@ -61,16 +64,18 @@ public class SeasonTicketService {
     @Transactional(readOnly = true)
     public List<SeasonTicketResponse> getMySeasonTickets(Long userId) {
         List<SeasonTicket> tickets = seasonTicketRepository.findByOwnerId(userId);
-        return tickets.stream().map(ticket -> {
-            List<MatchEntitlement> entitlements = matchEntitlementRepository.findBySeasonTicketId(ticket.getId());
-            return SeasonTicketResponse.from(ticket, entitlements);
-        }).toList();
+        return tickets.stream()
+                .map(ticket -> {
+                    List<MatchEntitlement> entitlements =
+                            matchEntitlementRepository.findBySeasonTicketId(ticket.getId());
+                    return SeasonTicketResponse.from(ticket, entitlements);
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<String> getAvailableBarcodes() {
-        return seasonTicketRepository.findByStatus(SeasonTicketStatus.UNCLAIMED)
-                .stream()
+        return seasonTicketRepository.findByStatus(SeasonTicketStatus.UNCLAIMED).stream()
                 .map(SeasonTicket::getBarcode)
                 .toList();
     }

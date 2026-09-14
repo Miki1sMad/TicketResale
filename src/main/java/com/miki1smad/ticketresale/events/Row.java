@@ -1,15 +1,18 @@
 package com.miki1smad.ticketresale.events;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.Instant;
-
 @Entity
-@Table(name = "rows", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_section_row", columnNames = {"section_id", "row_number"})
-})
+@Table(
+        name = "rows",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uq_section_row",
+                    columnNames = {"section_id", "row_number"})
+        })
 @Getter
 @Setter
 @NoArgsConstructor

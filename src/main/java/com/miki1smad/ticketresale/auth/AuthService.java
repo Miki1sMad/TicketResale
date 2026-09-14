@@ -23,18 +23,16 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         User user = userService.registerUser(
-                request.email(),
-                request.password(),
-                request.firstName(),
-                request.lastName(),
-                Role.USER
-        );
+                request.email(), request.password(), request.firstName(), request.lastName(), Role.USER);
 
-        if (request.seasonTicketBarcode() != null && !request.seasonTicketBarcode().trim().isEmpty()) {
-            seasonTicketService.claimSeasonTicket(user.getId(), request.seasonTicketBarcode().trim());
+        if (request.seasonTicketBarcode() != null
+                && !request.seasonTicketBarcode().trim().isEmpty()) {
+            seasonTicketService.claimSeasonTicket(
+                    user.getId(), request.seasonTicketBarcode().trim());
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String accessToken = jwtService.generateAccessToken(
+                user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return AuthResponse.of(accessToken, refreshToken, jwtService.getAccessTokenExpirationSeconds());
@@ -42,13 +40,14 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
+                new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
-        User user = userService.findByEmail(request.email())
+        User user = userService
+                .findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String accessToken = jwtService.generateAccessToken(
+                user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return AuthResponse.of(accessToken, refreshToken, jwtService.getAccessTokenExpirationSeconds());
@@ -67,10 +66,10 @@ public class AuthService {
             throw new BadCredentialsException("Token is not a refresh token");
         }
 
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new BadCredentialsException("User not found"));
+        User user = userService.findByEmail(email).orElseThrow(() -> new BadCredentialsException("User not found"));
 
-        String newAccessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String newAccessToken = jwtService.generateAccessToken(
+                user.getId(), user.getEmail(), user.getRole().name());
         return AuthResponse.of(newAccessToken, refreshToken, jwtService.getAccessTokenExpirationSeconds());
     }
 }

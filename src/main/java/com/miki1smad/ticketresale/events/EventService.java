@@ -1,11 +1,10 @@
 package com.miki1smad.ticketresale.events;
 
+import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +19,7 @@ public class EventService {
         if (clubRepository.findByName(request.name()).isPresent()) {
             throw new IllegalArgumentException("Club with name '" + request.name() + "' already exists");
         }
-        Club club = Club.builder()
-                .name(request.name())
-                .city(request.city())
-                .build();
+        Club club = Club.builder().name(request.name()).city(request.city()).build();
         return ClubResponse.from(clubRepository.save(club));
     }
 
@@ -36,7 +32,8 @@ public class EventService {
     public StadiumResponse createStadium(CreateStadiumRequest request) {
         Club club = null;
         if (request.clubId() != null) {
-            club = clubRepository.findById(request.clubId())
+            club = clubRepository
+                    .findById(request.clubId())
                     .orElseThrow(() -> new IllegalArgumentException("Club not found with id: " + request.clubId()));
         }
         Stadium stadium = Stadium.builder()
@@ -55,11 +52,14 @@ public class EventService {
 
     @Transactional
     public MatchResponse createMatch(CreateMatchRequest request) {
-        Club homeClub = clubRepository.findById(request.homeClubId())
+        Club homeClub = clubRepository
+                .findById(request.homeClubId())
                 .orElseThrow(() -> new IllegalArgumentException("Home club not found: " + request.homeClubId()));
-        Club awayClub = clubRepository.findById(request.awayClubId())
+        Club awayClub = clubRepository
+                .findById(request.awayClubId())
                 .orElseThrow(() -> new IllegalArgumentException("Away club not found: " + request.awayClubId()));
-        Stadium stadium = stadiumRepository.findById(request.stadiumId())
+        Stadium stadium = stadiumRepository
+                .findById(request.stadiumId())
                 .orElseThrow(() -> new IllegalArgumentException("Stadium not found: " + request.stadiumId()));
 
         Match match = Match.builder()
@@ -75,18 +75,22 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<MatchResponse> listMatches() {
-        return matchRepository.findAllByOrderByKickoffTimeAsc().stream().map(MatchResponse::from).toList();
+        return matchRepository.findAllByOrderByKickoffTimeAsc().stream()
+                .map(MatchResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<MatchResponse> listUpcomingMatches() {
-        return matchRepository.findByKickoffTimeAfterOrderByKickoffTimeAsc(Instant.now())
-                .stream().map(MatchResponse::from).toList();
+        return matchRepository.findByKickoffTimeAfterOrderByKickoffTimeAsc(Instant.now()).stream()
+                .map(MatchResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public Match getMatchEntity(Long matchId) {
-        return matchRepository.findById(matchId)
+        return matchRepository
+                .findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("Match not found: " + matchId));
     }
 }

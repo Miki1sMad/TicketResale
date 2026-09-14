@@ -1,7 +1,14 @@
 package com.miki1smad.ticketresale.seasontickets;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.jayway.jsonpath.JsonPath;
 import com.miki1smad.ticketresale.users.UserRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,14 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -61,7 +60,8 @@ class SeasonTicketIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
 
-        SeasonTicket ticket = seasonTicketRepository.findByBarcode("ST-2025-001").orElseThrow();
+        SeasonTicket ticket =
+                seasonTicketRepository.findByBarcode("ST-2025-001").orElseThrow();
         assertThat(ticket.getStatus()).isEqualTo(SeasonTicketStatus.ACTIVE);
         assertThat(ticket.getOwner()).isNotNull();
         assertThat(ticket.getOwner().getEmail()).isEqualTo("sezonac1@example.com");
@@ -87,7 +87,8 @@ class SeasonTicketIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Nevažeći bar-kod sezonske karte. Molimo proverite unos i pokušajte ponovo."));
+                .andExpect(jsonPath("$.message")
+                        .value("Nevažeći bar-kod sezonske karte. Molimo proverite unos i pokušajte ponovo."));
 
         // User should not exist in database due to transaction rollback
         assertThat(userRepository.findByEmail("invalid.barcode@example.com")).isEmpty();
@@ -156,8 +157,7 @@ class SeasonTicketIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Sezonska karta sa ovim bar-kodom je već preuzeta."));
 
         // 4. Verify my season tickets endpoint for first user
-        mockMvc.perform(get("/api/v1/season-tickets/my")
-                        .header("Authorization", "Bearer " + token))
+        mockMvc.perform(get("/api/v1/season-tickets/my").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].barcode").value("ST-2025-002"))
@@ -167,8 +167,7 @@ class SeasonTicketIntegrationTest {
     @Test
     void shouldDenyAvailableBarcodesWithoutAdminAndAllowForAdmin() throws Exception {
         // 1. Unauthenticated request must be denied
-        mockMvc.perform(get("/api/v1/season-tickets/available-barcodes"))
-                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/season-tickets/available-barcodes")).andExpect(status().isForbidden());
 
         // 2. Admin login
         String adminLogin = """

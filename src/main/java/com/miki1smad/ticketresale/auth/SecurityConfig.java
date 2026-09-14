@@ -22,7 +22,8 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserService userService) {
-        return username -> userService.findByEmail(username)
+        return username -> userService
+                .findByEmail(username)
                 .map(user -> org.springframework.security.core.userdetails.User.builder()
                         .username(user.getEmail())
                         .password(user.getPassword())
@@ -37,22 +38,31 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthFilter
-    ) throws Exception {
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter)
+            throws Exception {
+        return http.csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/matches/**", "/api/v1/clubs/**", "/api/v1/stadiums/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/matches/**", "/api/v1/clubs/**", "/api/v1/stadiums/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/season-tickets/available-barcodes").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/turnstile/**").hasAnyRole("ADMIN", "STADIUM_OPERATOR")
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**")
+                        .permitAll()
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.GET,
+                                "/api/v1/matches/**",
+                                "/api/v1/clubs/**",
+                                "/api/v1/stadiums/**")
+                        .permitAll()
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.POST,
+                                "/api/v1/matches/**",
+                                "/api/v1/clubs/**",
+                                "/api/v1/stadiums/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers("/api/v1/season-tickets/available-barcodes")
+                        .hasRole("ADMIN")
+                        .requestMatchers("/api/v1/turnstile/**")
+                        .hasAnyRole("ADMIN", "STADIUM_OPERATOR")
+                        .anyRequest()
+                        .authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

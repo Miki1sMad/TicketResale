@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,3 +27,6 @@ jobs:
 
       - name: Build and verify with Maven
         run: ./mvnw -B clean verify
+
+      - name: Verify Docker build
+        run: docker build .

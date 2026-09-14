@@ -8,8 +8,7 @@ public record MatchEntitlementResponse(
         String homeClubName,
         String awayClubName,
         Instant kickoffTime,
-        EntitlementStatus status
-) {
+        EntitlementStatus status) {
     public static MatchEntitlementResponse from(MatchEntitlement entitlement) {
         return new MatchEntitlementResponse(
                 entitlement.getId(),
@@ -17,7 +16,6 @@ public record MatchEntitlementResponse(
                 entitlement.getMatch().getHomeClub().getName(),
                 entitlement.getMatch().getAwayClub().getName(),
                 entitlement.getMatch().getKickoffTime(),
-                entitlement.getStatus()
-        );
+                entitlement.getStatus());
     }
 }

@@ -2,16 +2,19 @@ package com.miki1smad.ticketresale.seasontickets;
 
 import com.miki1smad.ticketresale.events.Match;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
-
 @Entity
-@Table(name = "match_entitlements", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_season_ticket_match", columnNames = {"season_ticket_id", "match_id"})
-})
+@Table(
+        name = "match_entitlements",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uq_season_ticket_match",
+                    columnNames = {"season_ticket_id", "match_id"})
+        })
 @Getter
 @Setter
 @NoArgsConstructor

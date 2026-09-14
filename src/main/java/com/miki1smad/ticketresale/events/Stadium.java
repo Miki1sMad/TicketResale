@@ -1,10 +1,9 @@
 package com.miki1smad.ticketresale.events;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "stadiums")

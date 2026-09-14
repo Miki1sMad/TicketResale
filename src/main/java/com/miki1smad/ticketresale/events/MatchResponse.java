@@ -12,8 +12,7 @@ public record MatchResponse(
         String stadiumName,
         Instant kickoffTime,
         String season,
-        MatchStatus status
-) {
+        MatchStatus status) {
     public static MatchResponse from(Match match) {
         return new MatchResponse(
                 match.getId(),
@@ -25,7 +24,6 @@ public record MatchResponse(
                 match.getStadium().getName(),
                 match.getKickoffTime(),
                 match.getSeason(),
-                match.getStatus()
-        );
+                match.getStatus());
     }
 }

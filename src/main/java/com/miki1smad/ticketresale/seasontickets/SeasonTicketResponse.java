@@ -13,12 +13,10 @@ public record SeasonTicketResponse(
         String seatNumber,
         SeasonTicketStatus status,
         Instant claimedAt,
-        List<MatchEntitlementResponse> entitlements
-) {
+        List<MatchEntitlementResponse> entitlements) {
     public static SeasonTicketResponse from(SeasonTicket ticket, List<MatchEntitlement> entitlements) {
-        List<MatchEntitlementResponse> entitlementResponses = entitlements.stream()
-                .map(MatchEntitlementResponse::from)
-                .toList();
+        List<MatchEntitlementResponse> entitlementResponses =
+                entitlements.stream().map(MatchEntitlementResponse::from).toList();
 
         return new SeasonTicketResponse(
                 ticket.getId(),
@@ -30,7 +28,6 @@ public record SeasonTicketResponse(
                 ticket.getSeat().getSeatNumber(),
                 ticket.getStatus(),
                 ticket.getClaimedAt(),
-                entitlementResponses
-        );
+                entitlementResponses);
     }
 }
