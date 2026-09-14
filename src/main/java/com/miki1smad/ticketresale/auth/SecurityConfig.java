@@ -49,7 +49,8 @@ public class SecurityConfig {
                                 org.springframework.http.HttpMethod.GET,
                                 "/api/v1/matches/**",
                                 "/api/v1/clubs/**",
-                                "/api/v1/stadiums/**")
+                                "/api/v1/stadiums/**",
+                                "/api/v1/listings/**")
                         .permitAll()
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.POST,
