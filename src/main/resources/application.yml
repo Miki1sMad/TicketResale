@@ -24,3 +24,15 @@ spring:
     host: ${SPRING_MAIL_HOST:localhost}
     port: ${SPRING_MAIL_PORT:1025}
     protocol: smtp
+
+ticketresale:
+  admin:
+    email: ${ADMIN_EMAIL:admin@ticketresale.com}
+    password: ${ADMIN_PASSWORD:Admin123!Safe}
+    first-name: System
+    last-name: Admin
+
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B597032723575}
+  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000}
+  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:604800000}
