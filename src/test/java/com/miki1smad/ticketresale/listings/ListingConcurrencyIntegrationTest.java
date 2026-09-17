@@ -21,24 +21,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest(properties = "spring.datasource.hikari.maximum-pool-size=50")
 @AutoConfigureMockMvc
-class ListingConcurrencyIntegrationTest {
-
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine");
-
-    static {
-        postgres.start();
-    }
+class ListingConcurrencyIntegrationTest extends com.miki1smad.ticketresale.BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

@@ -11,24 +11,11 @@ import com.miki1smad.ticketresale.users.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class SeasonTicketIntegrationTest {
-
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine");
-
-    static {
-        postgres.start();
-    }
+class SeasonTicketIntegrationTest extends com.miki1smad.ticketresale.BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

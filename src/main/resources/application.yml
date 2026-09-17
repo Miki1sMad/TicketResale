@@ -31,6 +31,8 @@ ticketresale:
     password: ${ADMIN_PASSWORD:Admin123!Safe}
     first-name: System
     last-name: Admin
+  tickets:
+    hmac-secret: ${TICKETS_HMAC_SECRET:ticketresale-super-secure-hmac-secret-key-32bytes}
 
 jwt:
   secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B597032723575}
