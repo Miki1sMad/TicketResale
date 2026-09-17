@@ -4,5 +4,6 @@ public enum EntitlementStatus {
     OWNER_HELD,
     LISTED,
     RESERVED,
-    RESOLD
+    RESOLD,
+    USED
 }
