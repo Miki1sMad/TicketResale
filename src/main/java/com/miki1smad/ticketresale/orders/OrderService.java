@@ -16,9 +16,14 @@ import com.miki1smad.ticketresale.users.Role;
 import com.miki1smad.ticketresale.users.User;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +38,40 @@ public class OrderService {
     private final MatchEntitlementRepository matchEntitlementRepository;
     private final PaymentGateway paymentGateway;
     private final TicketTokenService ticketTokenService;
+    private final RedissonClient redissonClient;
+    private final TransactionTemplate transactionTemplate;
 
-    @Transactional
+    @CacheEvict(value = "listings", allEntries = true)
     public OrderResponse checkout(String idempotencyKey, CheckoutRequest request, User buyer) {
+        Reservation reservation = reservationRepository
+                .findById(request.reservationId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Reservation not found with ID: " + request.reservationId()));
+
+        Long listingId = reservation.getListing().getId();
+        RLock lock = redissonClient.getLock("lock:listing:" + listingId);
+        boolean acquired;
+        try {
+            acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for lock on listing: " + listingId, e);
+        }
+
+        if (!acquired) {
+            throw new IllegalStateException("Could not acquire lock for listing: " + listingId);
+        }
+
+        try {
+            return transactionTemplate.execute(status -> executeCheckout(idempotencyKey, request, buyer));
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    private OrderResponse executeCheckout(String idempotencyKey, CheckoutRequest request, User buyer) {
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             throw new IllegalArgumentException("Idempotency-Key header is required");
         }

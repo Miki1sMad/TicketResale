@@ -3,6 +3,8 @@ package com.miki1smad.ticketresale.events;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ public class EventService {
     private final MatchRepository matchRepository;
 
     @Transactional
+    @CacheEvict(value = "clubs", allEntries = true)
     public ClubResponse createClub(CreateClubRequest request) {
         if (clubRepository.findByName(request.name()).isPresent()) {
             throw new IllegalArgumentException("Club with name '" + request.name() + "' already exists");
@@ -24,11 +27,13 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "clubs", key = "'all'")
     public List<ClubResponse> listClubs() {
         return clubRepository.findAll().stream().map(ClubResponse::from).toList();
     }
 
     @Transactional
+    @CacheEvict(value = "stadiums", allEntries = true)
     public StadiumResponse createStadium(CreateStadiumRequest request) {
         Club club = null;
         if (request.clubId() != null) {
@@ -46,11 +51,13 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "stadiums", key = "'all'")
     public List<StadiumResponse> listStadiums() {
         return stadiumRepository.findAll().stream().map(StadiumResponse::from).toList();
     }
 
     @Transactional
+    @CacheEvict(value = "matches", allEntries = true)
     public MatchResponse createMatch(CreateMatchRequest request) {
         Club homeClub = clubRepository
                 .findById(request.homeClubId())
@@ -74,6 +81,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "matches", key = "'all'")
     public List<MatchResponse> listMatches() {
         return matchRepository.findAllByOrderByKickoffTimeAsc().stream()
                 .map(MatchResponse::from)
@@ -81,10 +89,17 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "matches", key = "'upcoming'")
     public List<MatchResponse> listUpcomingMatches() {
         return matchRepository.findByKickoffTimeAfterOrderByKickoffTimeAsc(Instant.now()).stream()
                 .map(MatchResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "matches", key = "#matchId")
+    public MatchResponse getMatch(Long matchId) {
+        return MatchResponse.from(getMatchEntity(matchId));
     }
 
     @Transactional(readOnly = true)

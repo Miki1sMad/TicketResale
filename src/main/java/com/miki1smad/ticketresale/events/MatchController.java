@@ -21,7 +21,7 @@ public class MatchController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MatchResponse> getMatchById(@PathVariable Long id) {
-        return ResponseEntity.ok(MatchResponse.from(eventService.getMatchEntity(id)));
+        return ResponseEntity.ok(eventService.getMatch(id));
     }
 
     @PostMapping

@@ -7,6 +7,8 @@ import com.miki1smad.ticketresale.users.User;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class ListingService {
     private final MatchEntitlementRepository matchEntitlementRepository;
 
     @Transactional
+    @CacheEvict(value = "listings", allEntries = true)
     public ListingResponse createListing(CreateListingRequest request, User seller) {
         MatchEntitlement entitlement = matchEntitlementRepository
                 .findById(request.matchEntitlementId())
@@ -53,6 +56,7 @@ public class ListingService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "listings", key = "#matchId != null ? #matchId : 'all'")
     public List<ListingResponse> getActiveListings(Long matchId) {
         List<Listing> listings;
         if (matchId != null) {
@@ -72,6 +76,7 @@ public class ListingService {
     }
 
     @Transactional
+    @CacheEvict(value = "listings", allEntries = true)
     public ListingResponse cancelListing(Long id, User seller) {
         Listing listing = listingRepository
                 .findById(id)

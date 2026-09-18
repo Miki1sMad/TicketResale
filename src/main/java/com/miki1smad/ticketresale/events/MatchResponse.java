@@ -12,7 +12,8 @@ public record MatchResponse(
         String stadiumName,
         Instant kickoffTime,
         String season,
-        MatchStatus status) {
+        MatchStatus status)
+        implements java.io.Serializable {
     public static MatchResponse from(Match match) {
         return new MatchResponse(
                 match.getId(),

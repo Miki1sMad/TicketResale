@@ -6,11 +6,16 @@ import com.miki1smad.ticketresale.users.User;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
@@ -21,9 +26,34 @@ public class ReservationService {
 
     private final ListingRepository listingRepository;
     private final ReservationRepository reservationRepository;
+    private final RedissonClient redissonClient;
+    private final TransactionTemplate transactionTemplate;
 
-    @Transactional
+    @CacheEvict(value = "listings", allEntries = true)
     public ReservationResponse createReservation(CreateReservationRequest request, User buyer) {
+        RLock lock = redissonClient.getLock("lock:listing:" + request.listingId());
+        boolean acquired;
+        try {
+            acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for lock on listing: " + request.listingId(), e);
+        }
+
+        if (!acquired) {
+            throw new IllegalStateException("Could not acquire lock for listing: " + request.listingId());
+        }
+
+        try {
+            return transactionTemplate.execute(status -> executeCreateReservation(request, buyer));
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    private ReservationResponse executeCreateReservation(CreateReservationRequest request, User buyer) {
         Listing listing = listingRepository
                 .findByIdForUpdate(request.listingId())
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found with ID: " + request.listingId()));
@@ -86,11 +116,13 @@ public class ReservationService {
 
     @Scheduled(fixedDelay = 30000)
     @Transactional
+    @CacheEvict(value = "listings", allEntries = true)
     public void scheduledExpirePendingReservations() {
         expirePendingReservations(Instant.now());
     }
 
     @Transactional
+    @CacheEvict(value = "listings", allEntries = true)
     public int expirePendingReservations(Instant asOf) {
         List<Reservation> expiredReservations =
                 reservationRepository.findByStatusAndExpiresAtLessThanEqual(ReservationStatus.PENDING, asOf);

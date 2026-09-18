@@ -18,7 +18,8 @@ public record ListingResponse(
         ListingStatus status,
         Long sellerId,
         String sellerEmail,
-        Instant createdAt) {
+        Instant createdAt)
+        implements java.io.Serializable {
 
     public static ListingResponse from(Listing listing) {
         var entitlement = listing.getMatchEntitlement();

@@ -25,6 +25,11 @@ spring:
     port: ${SPRING_MAIL_PORT:1025}
     protocol: smtp
 
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
 ticketresale:
   admin:
     email: ${ADMIN_EMAIL:admin@ticketresale.com}
