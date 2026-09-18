@@ -33,7 +33,7 @@ public class SeasonTicketSeeder implements CommandLineRunner {
             return;
         }
 
-        log.info("Seeding 20 initial season tickets with barcodes...");
+        log.info("Seeding 100 initial season tickets with barcodes...");
 
         // 1. Get or create Home Club & Away Club
         Club homeClub = clubRepository
@@ -73,17 +73,17 @@ public class SeasonTicketSeeder implements CommandLineRunner {
                         Row.builder().section(section).rowNumber("1").build())
                 : rows.getFirst();
 
-        // 4. Create 20 seats and 20 season tickets
+        // 4. Create 100 seats and 100 season tickets
         List<Seat> existingSeats = seatRepository.findByRowId(row.getId());
         List<Seat> seats = new ArrayList<>(existingSeats);
-        for (int i = existingSeats.size() + 1; i <= 20; i++) {
+        for (int i = existingSeats.size() + 1; i <= 100; i++) {
             Seat seat = seatRepository.save(
                     Seat.builder().row(row).seatNumber(String.valueOf(i)).build());
             seats.add(seat);
         }
 
-        // 5. Seed 20 season tickets
-        for (int i = 1; i <= 20; i++) {
+        // 5. Seed 100 season tickets
+        for (int i = 1; i <= 100; i++) {
             String barcode = String.format("ST-2025-%03d", i);
             Seat seat = seats.get(i - 1);
 
@@ -119,6 +119,6 @@ public class SeasonTicketSeeder implements CommandLineRunner {
                     .build());
         }
 
-        log.info("Successfully seeded 20 season tickets (ST-2025-001 to ST-2025-020).");
+        log.info("Successfully seeded 100 season tickets (ST-2025-001 to ST-2025-100).");
     }
 }
