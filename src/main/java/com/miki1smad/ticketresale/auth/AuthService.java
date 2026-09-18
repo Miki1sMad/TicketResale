@@ -4,7 +4,9 @@ import com.miki1smad.ticketresale.seasontickets.SeasonTicketService;
 import com.miki1smad.ticketresale.users.Role;
 import com.miki1smad.ticketresale.users.User;
 import com.miki1smad.ticketresale.users.UserService;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +21,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final SeasonTicketService seasonTicketService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -35,9 +38,13 @@ public class AuthService {
                 user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
+        eventPublisher.publishEvent(new UserRegisteredEvent(
+                user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), Instant.now()));
+
         return AuthResponse.of(accessToken, refreshToken, jwtService.getAccessTokenExpirationSeconds());
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password()));
@@ -49,6 +56,8 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(
                 user.getId(), user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        eventPublisher.publishEvent(new UserLoggedInEvent(user.getId(), user.getEmail(), Instant.now()));
 
         return AuthResponse.of(accessToken, refreshToken, jwtService.getAccessTokenExpirationSeconds());
     }

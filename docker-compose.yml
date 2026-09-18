@@ -1,3 +1,10 @@
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
 services:
   app:
     build:
@@ -20,13 +27,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    <<: *default-logging
 
   postgres:
     image: postgres:18-alpine
     container_name: ticketresale-postgres
     restart: unless-stopped
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ticketresale}
       POSTGRES_USER: ${POSTGRES_USER:-ticketresale}
@@ -38,26 +46,33 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    <<: *default-logging
 
   redis:
     image: redis:alpine
     container_name: ticketresale-redis
     restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
+    <<: *default-logging
 
   mailpit:
     image: axllent/mailpit:latest
     container_name: ticketresale-mailpit
     restart: unless-stopped
     ports:
-      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
       - "${MAILPIT_UI_PORT:-8025}:8025"
+    <<: *default-logging
 
 volumes:
   postgres_data:
+  redis_data:

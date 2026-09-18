@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ public class ListingService {
 
     private final ListingRepository listingRepository;
     private final MatchEntitlementRepository matchEntitlementRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @CacheEvict(value = "listings", allEntries = true)
@@ -52,6 +54,12 @@ public class ListingService {
                 .build();
 
         listing = listingRepository.save(listing);
+
+        String matchTitle = entitlement.getMatch().getHomeClub().getName() + " vs "
+                + entitlement.getMatch().getAwayClub().getName();
+        eventPublisher.publishEvent(new TicketListedEvent(
+                listing.getId(), seller.getId(), seller.getEmail(), matchTitle, listing.getPrice(), Instant.now()));
+
         return ListingResponse.from(listing);
     }
 

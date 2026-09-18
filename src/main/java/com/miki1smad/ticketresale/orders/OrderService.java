@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -40,6 +41,7 @@ public class OrderService {
     private final TicketTokenService ticketTokenService;
     private final RedissonClient redissonClient;
     private final TransactionTemplate transactionTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     @CacheEvict(value = "listings", allEntries = true)
     public OrderResponse checkout(String idempotencyKey, CheckoutRequest request, User buyer) {
@@ -173,6 +175,34 @@ public class OrderService {
                 .build();
         ticket = resaleTicketRepository.save(ticket);
         order.getTickets().add(ticket);
+
+        User seller = listing.getSeller();
+        String matchTitle =
+                match.getHomeClub().getName() + " vs " + match.getAwayClub().getName();
+        String seatDetails = seat.getRow().getSection().getStadium().getName() + ", Sektor "
+                + seat.getRow().getSection().getName() + ", Red "
+                + seat.getRow().getRowNumber() + ", Sedište "
+                + seat.getSeatNumber();
+
+        eventPublisher.publishEvent(new OrderCompletedEvent(
+                order.getId(),
+                buyer.getId(),
+                buyer.getEmail(),
+                seller.getId(),
+                seller.getEmail(),
+                matchTitle,
+                order.getTotalAmount(),
+                Instant.now()));
+
+        eventPublisher.publishEvent(new ResaleTicketIssuedEvent(
+                ticket.getId(),
+                order.getId(),
+                buyer.getId(),
+                buyer.getEmail(),
+                rawToken,
+                matchTitle,
+                seatDetails,
+                Instant.now()));
 
         return OrderResponse.from(order, rawToken);
     }

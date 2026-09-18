@@ -38,6 +38,9 @@ ticketresale:
     last-name: Admin
   tickets:
     hmac-secret: ${TICKETS_HMAC_SECRET:ticketresale-super-secure-hmac-secret-key-32bytes}
+  mail:
+    from: ${MAIL_FROM:noreply@ticketresale.com}
+    ticket-delay-seconds: ${TICKET_EMAIL_DELAY_SECONDS:30}
 
 jwt:
   secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B597032723575}
