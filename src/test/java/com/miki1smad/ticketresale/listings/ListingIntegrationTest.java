@@ -98,11 +98,16 @@ class ListingIntegrationTest extends com.miki1smad.ticketresale.BaseIntegrationT
         assertThat(reloadedEntitlement.getStatus()).isEqualTo(EntitlementStatus.LISTED);
 
         // 3. Query active listings by match ID
-        mockMvc.perform(get("/api/v1/listings?matchId=" + entitlement.getMatch().getId()))
+        MvcResult getResult = mockMvc.perform(
+                        get("/api/v1/listings?matchId=" + entitlement.getMatch().getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(listingId))
-                .andExpect(jsonPath("$[0].price").value(3500.00));
+                .andReturn();
+
+        List<Number> prices = JsonPath.read(
+                getResult.getResponse().getContentAsString(), String.format("$[?(@.id == %d)].price", listingId));
+        assertThat(prices).hasSize(1);
+        assertThat(prices.getFirst().doubleValue()).isEqualTo(3500.00);
 
         // 4. Seller cannot reserve own listing
         String reservePayload = String.format("""
