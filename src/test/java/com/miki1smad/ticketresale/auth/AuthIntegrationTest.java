@@ -117,4 +117,28 @@ class AuthIntegrationTest extends com.miki1smad.ticketresale.BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
+
+    @Test
+    void shouldRejectRefreshTokenWhenUsedAsBearerToken() throws Exception {
+        String adminLoginPayload = """
+                {
+                    "email": "admin@ticketresale.com",
+                    "password": "Admin123!Safe"
+                }
+                """;
+
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(adminLoginPayload))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseContent = loginResult.getResponse().getContentAsString();
+        String refreshToken = JsonPath.read(responseContent, "$.refreshToken");
+
+        // Attempting to access protected endpoint (/api/v1/orders/my) with Refresh Token as Bearer token
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/orders/my")
+                        .header("Authorization", "Bearer " + refreshToken))
+                .andExpect(status().isForbidden());
+    }
 }

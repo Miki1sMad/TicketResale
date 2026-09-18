@@ -36,3 +36,20 @@ build/
 .env
 
 docs/
+
+### Python & tests_e2e ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+

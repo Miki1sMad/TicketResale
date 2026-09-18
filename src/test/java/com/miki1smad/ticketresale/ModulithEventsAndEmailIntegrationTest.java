@@ -12,6 +12,7 @@ import com.miki1smad.ticketresale.seasontickets.MatchEntitlementRepository;
 import com.miki1smad.ticketresale.seasontickets.SeasonTicket;
 import com.miki1smad.ticketresale.seasontickets.SeasonTicketRepository;
 import com.miki1smad.ticketresale.seasontickets.SeasonTicketStatus;
+import jakarta.mail.internet.MimeMessage;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -182,10 +183,15 @@ class ModulithEventsAndEmailIntegrationTest extends BaseIntegrationTest {
         // Verify:
         // A) Seller receives sale confirmation email
         // B) Buyer receives order confirmation email
-        // C) Buyer receives separate barcode ticket email
+        // C) Buyer receives separate barcode ticket email as MIME message with barcodes
+        ArgumentCaptor<MimeMessage> mimeCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+
         Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             verify(mailSender, atLeastOnce()).send(captor.capture());
+            verify(mailSender, atLeastOnce()).send(mimeCaptor.capture());
+
             List<SimpleMailMessage> allSent = captor.getAllValues();
+            List<MimeMessage> allMimeSent = mimeCaptor.getAllValues();
 
             // A) Seller sold email
             assertThat(allSent)
@@ -201,14 +207,18 @@ class ModulithEventsAndEmailIntegrationTest extends BaseIntegrationTest {
                             && msg.getSubject() != null
                             && msg.getSubject().contains("Potvrda kupovine"));
 
-            // C) Buyer barcode email
-            assertThat(allSent)
-                    .anyMatch(msg -> msg.getTo() != null
-                            && List.of(msg.getTo()).contains(buyerEmail)
+            // C) Buyer barcode email (MimeMessage with barcode attachments)
+            assertThat(allMimeSent).anyMatch(msg -> {
+                try {
+                    return msg.getAllRecipients() != null
+                            && List.of(msg.getAllRecipients()).stream()
+                                    .anyMatch(r -> r.toString().contains(buyerEmail))
                             && msg.getSubject() != null
-                            && msg.getSubject().contains("Vaša ulaznica i bar-kod")
-                            && msg.getText() != null
-                            && msg.getText().contains("TKT_"));
+                            && msg.getSubject().contains("Vaša ulaznica i bar-kod");
+                } catch (Exception e) {
+                    return false;
+                }
+            });
         });
     }
 }

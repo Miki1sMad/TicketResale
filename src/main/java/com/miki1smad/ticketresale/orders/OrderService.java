@@ -107,6 +107,16 @@ public class OrderService {
 
         if (reservation.getExpiresAt().isBefore(Instant.now())) {
             reservation.setStatus(ReservationStatus.EXPIRED);
+            Listing listing = reservation.getListing();
+            if (listing.getStatus() == ListingStatus.RESERVED) {
+                listing.setStatus(ListingStatus.ACTIVE);
+                listingRepository.save(listing);
+            }
+            MatchEntitlement entitlement = listing.getMatchEntitlement();
+            if (entitlement != null && entitlement.getStatus() == EntitlementStatus.RESERVED) {
+                entitlement.setStatus(EntitlementStatus.LISTED);
+                matchEntitlementRepository.save(entitlement);
+            }
             reservationRepository.save(reservation);
             throw new IllegalStateException("Reservation has expired");
         }

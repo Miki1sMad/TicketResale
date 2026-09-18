@@ -28,7 +28,7 @@ public class SeasonTicketService {
 
         String trimmedBarcode = barcode.trim();
         SeasonTicket ticket = seasonTicketRepository
-                .findByBarcode(trimmedBarcode)
+                .findByBarcodeForUpdate(trimmedBarcode)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Nevažeći bar-kod sezonske karte. Molimo proverite unos i pokušajte ponovo."));
 

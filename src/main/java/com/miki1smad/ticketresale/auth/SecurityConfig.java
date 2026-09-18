@@ -52,11 +52,7 @@ public class SecurityConfig {
                                 "/api/v1/stadiums/**",
                                 "/api/v1/listings/**")
                         .permitAll()
-                        .requestMatchers(
-                                org.springframework.http.HttpMethod.POST,
-                                "/api/v1/matches/**",
-                                "/api/v1/clubs/**",
-                                "/api/v1/stadiums/**")
+                        .requestMatchers("/api/v1/matches/**", "/api/v1/clubs/**", "/api/v1/stadiums/**")
                         .hasRole("ADMIN")
                         .requestMatchers("/api/v1/season-tickets/available-barcodes")
                         .hasRole("ADMIN")

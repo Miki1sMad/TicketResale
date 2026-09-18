@@ -35,6 +35,7 @@ public class JwtService {
                 .subject(email)
                 .claim("userId", userId)
                 .claim("role", role)
+                .claim("type", "ACCESS")
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -65,6 +66,16 @@ public class JwtService {
     public Long extractUserId(String token) {
         Number id = extractAllClaims(token).get("userId", Number.class);
         return id != null ? id.longValue() : null;
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            String type = claims.get("type", String.class);
+            return !"REFRESH".equalsIgnoreCase(type);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isTokenValid(String token, String username) {

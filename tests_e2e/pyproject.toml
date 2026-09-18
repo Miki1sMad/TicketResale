@@ -1,0 +1,11 @@
+[project]
+name = "tests-e2e"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "faker>=40.39.0",
+    "httpx>=0.28.1",
+    "pydantic>=2.13.5",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]

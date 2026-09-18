@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,5 +28,35 @@ jobs:
       - name: Build and verify with Maven
         run: ./mvnw -B clean verify
 
-      - name: Verify Docker build
-        run: docker build .
+      - name: Start Docker Compose environment
+        run: |
+          docker compose up -d --build
+          echo "Waiting for TicketResale application to become ready..."
+          for i in {1..60}; do
+            if curl -s -f http://localhost:8080/api/v1/clubs > /dev/null 2>&1; then
+              echo "Application is up and responding!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "tests_e2e/uv.lock"
+          python-version: '3.14'
+
+      - name: Run E2E Test Suite
+        working-directory: tests_e2e
+        run: |
+          uv sync --frozen
+          uv run pytest -v
+
+      - name: Show docker logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Teardown Docker Compose
+        if: always()
+        run: docker compose down -v
