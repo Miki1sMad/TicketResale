@@ -2,6 +2,14 @@ spring:
   application:
     name: TicketResale
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ticketresale}
     username: ${SPRING_DATASOURCE_USERNAME:ticketresale}
